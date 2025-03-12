@@ -1,0 +1,15 @@
+
+DEFAULT_SCREEN_WIDTH = 640
+DEFAULT_SCREEN_HEIGHT = 480
+
+
+ENTITY_TYPE = {
+    "CUBE": 0,
+    "GROUND": 1,
+    "MEDKIT": 2,
+    "TRIANGLE": 3,
+    "UNIT_TRIANGLE": 4,
+    "UNIT_CUBE": 5,
+    "UNIT_DEFAULT": 6
+}
+

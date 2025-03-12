@@ -1,0 +1,29 @@
+#version 440 core
+
+// in vec3 fragmentColor;
+in vec2 fragmentTexCoord;
+
+uniform vec3 object_color;
+// uniform vec3 tint;
+
+
+layout (binding = 0) uniform sampler2D imageTexture;
+
+out vec4 color;
+
+
+void main()
+{
+    // color = vec4(fragmentColor, 1.0) * texture(imageTexture, fragmentTexCoord);
+    // color = vec4(tint, 1) * baseTexture;
+
+    if (fragmentTexCoord.x > 5) {
+        color = vec4(object_color, 1.0);
+    }
+    else {
+        color = texture(imageTexture, fragmentTexCoord);
+    }
+}
+
+
+
