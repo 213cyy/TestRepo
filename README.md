@@ -1,15 +1,15 @@
 # 高天 code review 投稿
 gaotian code review post
 
-评论草稿:
-这是我写的用opengl渲染war3地图的一些程序,
-希望高神能帮我review一下.
+评论草稿:  
+这是我写的用opengl渲染war3地图的一些程序,  
+希望高神能帮我review一下.  
 https://github.com/WaltYoung/RecognizeEncryptedTrafficBasedOnMachineLearning/blob/main/extractor_json2csv.py
-中 300 行之前 500行之后的部分
-这部分和渲染无关,一部分完成了二进制文件数据的载入和解析.另外一部分则是项目的启动代码.
-我希望得到在 项目运行流程 和 数据组织 方面的指导和建议,谢谢!
-这里有关于 项目 和 上述程序大致逻辑 的说明视频:
-[有热心的网友能帮我 review 一下我的代码么?](https://www.bilibili.com/video/BV1LvRWYzEKT)
+中 300 行之前 500行之后的部分  
+这部分和渲染无关,一部分完成了二进制文件数据的载入和解析.另外一部分则是项目的启动代码.  
+我希望得到在 项目运行流程 和 数据组织 方面的指导和建议,谢谢!  
+这里有关于 项目 和 上述程序大致逻辑 的说明视频:  
+[有热心的网友能帮我 review 一下我的代码么?](https://www.bilibili.com/video/BV1LvRWYzEKT)  
 希望水友助我中选!谢谢!
 
 
