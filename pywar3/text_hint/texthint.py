@@ -359,7 +359,7 @@ if __name__ == "__main__":
     from sys import path
     path.append(ROOT)
 
-    from main_simple import App
+    from main import App
     my_app = App()
     my_app.add_manager(TextBoxManager(auto_update=True))
     my_app.run()

@@ -57,15 +57,15 @@ class TileCorner:
         # WATER_DEEPLEVEL=64
         # WATER_MAXDEPTH=72
         if self.water_flag:
-            d_height = np.clip(
+            water_depth = np.clip(
                 self.pos_water_z - self.pos_ground_z, WATER_MINDEPTH, WATER_MAXDEPTH)
-            if d_height <= WATER_DEEPLEVEL:
-                value = (d_height - WATER_MINDEPTH) / \
+            if water_depth <= WATER_DEEPLEVEL:
+                value = (water_depth - WATER_MINDEPTH) / \
                     (WATER_DEEPLEVEL - WATER_MINDEPTH)
                 water_color = WATER_SHALLOW_COLOR_MAX * np.array(value) \
                     + WATER_SHALLOW_COLOR_MIN * np.array(1 - value)
             else:
-                value = (d_height - WATER_DEEPLEVEL) / \
+                value = (water_depth - WATER_DEEPLEVEL) / \
                     (WATER_MAXDEPTH - WATER_DEEPLEVEL)
                 water_color = WATER_DEEP_COLOR_MAX * np.array(value) \
                     + WATER_DEEP_COLOR_MIN * np.array(1 - value)
@@ -110,10 +110,11 @@ class MapInfo:
 
             if level_diff > 0:
                 for k in range(4):
-                    if tile_points_layer[k] == level_min:
-                        if tile_points[k].ramp_flag:
-                            # tile_points[k].ramp_level = level_min + 0.5
+                    if tile_points[k].ramp_flag:
+                        if tile_points_layer[k] == level_min:
                             tile_points[k].cliff_flag = True
+                    else:
+                        tile_points[k].tileset_type = 4
 
         # ------------- second loop to populate  ------------------
         for index in range((height-1) * (width-1)):
@@ -174,6 +175,7 @@ class MapInfo:
         # corner_point_array:
         # contains universal property (position + color) info for all corner points
         self.corner_point_array = []
+        self.ground_z_list = []
         for index in range(height * width):
             row, col = divmod(index, width)
             pos_x = col * 128 + self.center_offset_x
@@ -186,7 +188,7 @@ class MapInfo:
             # print(water_color)
             self.corner_point_array += [pos_x, pos_y,
                                         pos_ground_z, pos_water_z] + water_color
-
+            self.ground_z_list += [pos_ground_z]
         pass
 
     def load_file_data(self, w3eFilepath=None):
@@ -262,6 +264,13 @@ class GroundRenderEngine:
 
     def __init__(self):
         mapw3e = MapInfo()
+        self.map_width = mapw3e.width
+        self.map_height = mapw3e.height
+        self.map_bottom_left_x = mapw3e.center_offset_x
+        self.map_bottom_left_y = mapw3e.center_offset_y
+        self.map_z_list = np.array(
+            mapw3e.ground_z_list).reshape((mapw3e.width, -1))
+
         self.water_phase = 0
         shader_wireframe = self.create_shader(
             GROUND_SHADER_FOLDER + "wireframe.vert",
@@ -320,6 +329,21 @@ class GroundRenderEngine:
 
         self.water_phase += window_state['frametime']
         # print(self.water_phase)
+
+    def get_position_height(self, postion):
+        pos_x, pos_y = postion[0], postion[1]
+        quot_width, dx = divmod(pos_x - self.map_bottom_left_x, 128)
+        quot_height, dy = divmod(pos_y - self.map_bottom_left_y, 128)
+        ind_width = int(quot_width)
+        ind_height = int(quot_height)
+        b1 = self.map_z_list[ind_height][ind_width]
+        b2 = self.map_z_list[ind_height][ind_width+1]
+        t1 = self.map_z_list[ind_height+1][ind_width]
+        t2 = self.map_z_list[ind_height+1][ind_width+1]
+        bottom_z = (1-dx/128)*b1 + dx/128*b2
+        top_z = (1-dx/128)*t1 + dx/128*t2
+        pos_z = (1-dy/128)*bottom_z + dy/128*top_z
+        return pos_z
 
 
 class GroundMesh_Frame:
@@ -456,7 +480,10 @@ class GroundMesh_Water:
                          self.watertile_phase_buffer)
 
         # glBindVertexArray(self.vao_dummy)
-        glUniform1ui(self.water_phase_location, int(water_phase/67))
+        water_phase_index = int(water_phase/67 % WATER_TEXTURES_NUM)
+        # print(water_phase_index)
+
+        glUniform1ui(self.water_phase_location, water_phase_index)
         glDrawArraysInstanced(GL_TRIANGLES, 0, 6, self.instancecount)
 
     def destroy(self):
@@ -623,6 +650,7 @@ class TileTexture:
             print(img_bytes[:3].hex())
 
     def __init__GL4_5(self, tileset_ids):
+        img = None
         width = self.image_width
         tile_size = self.tile_size
         # glCreateTextures(GL_TEXTURE_2D_ARRAY, len(tileset_ids), &id)
@@ -638,6 +666,7 @@ class TileTexture:
             glTextureParameteri(tex_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTextureParameteri(tex_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
+            data = img.tobytes()
             glPixelStorei(GL_UNPACK_ROW_LENGTH, width)
             for y in range(4):
                 for x in range(4):
@@ -739,9 +768,17 @@ if __name__ == "__main__":
     from sys import path
     path.append(ROOT)
 
-    from main_simple import App
+    from main import App
     my_app = App()
-    # my_app.set_ground(GroundRenderEngine())
-    # my_app.add_manager(GroundRenderEngine())
+
+    my_app.game_manager.fun_once_list = []
+    # key_engine = GroundRenderEngine
+    # key_engine = QuadBoardRenderEngine
+    # my_app.game_manager.register_agent_engine(
+    #         key_engine(my_app.game_manager))
+    # my_app.game_manager.CreateDestructable("quadboard", 200, 200, 0)
+    # my_app.game_manager.CreateDestructable(
+    #           key_engine.agent_class_name, 200, 200, 0)
+
     my_app.run()
     my_app.quit()

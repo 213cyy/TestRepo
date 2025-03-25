@@ -50,6 +50,7 @@ void main() {
     gl_Position = MVP * vec4(pos.xyw, 1.0);
 	frag_color = p_attr.point_color;
     uint tex_index = (water_phase + watertile_phase_list[gl_InstanceID]) % WATER_TEXTURES_NUM;
-	tex_coord = vec3(coord_predefined[gl_VertexID], tex_index );
+	// frag_color = vec4(1.0,watertile_phase_list[gl_InstanceID]/45.5,0.5,1.0);
+	tex_coord = vec3(coord_predefined[gl_VertexID], float(tex_index) );
 
  }

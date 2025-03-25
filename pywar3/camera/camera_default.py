@@ -12,7 +12,7 @@ class Camera():
     # CAMERA_FIELD_ZOFFSET
 
     # CAMERA_FIELD_FIELD_OF_VIEW
-    CAMERA_DEFAULT_FIELD_OF_VIEW = 70 
+    CAMERA_DEFAULT_FIELD_OF_VIEW = 70.0/2
     # CAMERA_FIELD_TARGET_DISTANCE
     TARGET_DEFAULT_DISTANCE = d = 1650.00
     # CAMERA_FIELD_ANGLE_OF_ATTACK
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     from sys import path
     path.append(ROOT)
 
-    from main_simple import App
+    from main import App
     my_app = App()
     # my_app.set_ground(GroundRenderEngine())
     # my_app.add_manager(GroundRenderEngine())

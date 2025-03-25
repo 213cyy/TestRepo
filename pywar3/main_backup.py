@@ -2,6 +2,9 @@ import glfw
 import glfw.GLFW as GLFW_CONSTANTS
 from OpenGL.GL import *
 
+import numpy as np
+import pyrr
+
 from config import *
 
 from ground.ground_default import GroundRenderEngine
@@ -24,10 +27,11 @@ class App:
         self.ground = GroundRenderEngine()
         self.camera = Camera()
         self.game_manager = GameManager(self)
+        self.engine_manager_list = []
+        self.keys_state = {}
 
         self._set_up_timer()
 
-        self.keys_state = {}
         self._set_up_input_systems()
 
     def _set_up_glfw(self) -> None:
@@ -41,12 +45,9 @@ class App:
         #     GLFW_CONSTANTS.GLFW_OPENGL_FORWARD_COMPAT, GLFW_CONSTANTS.GLFW_TRUE)
         # for uncapped framerate
         # glfw.window_hint(GLFW_CONSTANTS.GLFW_DOUBLEBUFFER, GL_FALSE)
-
         self.window = glfw.create_window(
             DEFAULT_SCREEN_WIDTH,  DEFAULT_SCREEN_HEIGHT, "Title", None, None)
         glfw.make_context_current(self.window)
-
-
 
     def _set_up_timer(self) -> None:
         self.last_time = glfw.get_time()
@@ -80,7 +81,6 @@ class App:
         self.window_state['windows_size'] = (width, height)
 
     def add_manager(self, manager) -> None:
-        print('main line 82 no use')
         self.engine_manager_list .append(manager)
 
     def _set_up_opengl(self) -> None:
@@ -94,12 +94,6 @@ class App:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         # glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
         # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA)
-
-        self.ubo_universal_MVP = glGenBuffers(1)
-        glBindBuffer(GL_UNIFORM_BUFFER, self.ubo_universal_MVP)
-        # glBufferData(GL_UNIFORM_BUFFER, self.MVP.nbytes,
-        #              self.MVP, GL_STATIC_DRAW)
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, self.ubo_universal_MVP)
 
     def run(self) -> None:
         self._set_up_opengl()
@@ -120,15 +114,15 @@ class App:
             self.ground.update_with_input(self.keys_state, self.window_state)
             self.game_manager.update_with_input(
                 self.keys_state, self.window_state)
+            for engine in self.engine_manager_list:
+                engine.update_with_input(self.keys_state, self.window_state)
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            MVP = self.camera.get_view_projection()
-            glBindBuffer(GL_UNIFORM_BUFFER, self.ubo_universal_MVP)
-            glBufferData(GL_UNIFORM_BUFFER, MVP.nbytes, MVP, GL_STATIC_DRAW)
-
 
             self.ground.render()
             self.game_manager.render()
+            for engine in self.engine_manager_list:
+                engine.render()
 
             glFlush()
             glfw.swap_buffers(self.window)
@@ -162,11 +156,14 @@ class App:
 
     def quit(self):
         self.game_manager.destroy()
+        for engine in self.engine_manager_list:
+            engine.destroy()
         glfw.terminate()
 
-#
+# 
 ######################################################################
-#
+# 
+
 
 if __name__ == '__main__':
 
