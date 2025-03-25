@@ -133,3 +133,16 @@
 
 
 
+## XXXXXXXXXXXX
+
+0. Requires Visual Studio 17.7 or higher (C++20 modules)
+3. Run vcpkg/bootstrap-vcpkg.bat
+4. Add an environment variable to your system:
+
+## YYYYYYYYYYYY
+
+Want to help with the development of HiveWE? Below is a list of features that you could implement. You can try one of these or just add something else you feel like HiveWE should have. Any contributions are welcome!
+
+- Being able to change forces/teams
+- Changing map sizes/camera bound
+- Ramp editing with the terrain palette
