@@ -13,7 +13,7 @@ struct point_attr {
 layout (std140, binding = 1) uniform CornerAttributes 
 {
     // vec4 point_position_list[];
-    point_attr point_attr_list[];
+    point_attr point_attr_list[1100];
 };
 
 layout(location = 0) uniform uint attr_offset; 

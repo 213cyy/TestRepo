@@ -12,7 +12,7 @@ struct point_attr {
 
 layout (std140, binding = 1) uniform CornerAttributes 
 {
-    point_attr point_attr_list[];
+    point_attr point_attr_list[1100];
 };
 
 
