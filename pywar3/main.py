@@ -32,13 +32,13 @@ class App:
 
     def _set_up_glfw(self) -> None:
         glfw.init()
-        # glfw.window_hint(GLFW_CONSTANTS.GLFW_CONTEXT_VERSION_MAJOR, 3)
-        # glfw.window_hint(GLFW_CONSTANTS.GLFW_CONTEXT_VERSION_MINOR, 3)
-        # glfw.window_hint(
-        #     GLFW_CONSTANTS.GLFW_OPENGL_PROFILE,
-        #     GLFW_CONSTANTS.GLFW_OPENGL_CORE_PROFILE)
-        # glfw.window_hint(
-        #     GLFW_CONSTANTS.GLFW_OPENGL_FORWARD_COMPAT, GLFW_CONSTANTS.GLFW_TRUE)
+        glfw.window_hint(GLFW_CONSTANTS.GLFW_CONTEXT_VERSION_MAJOR, 4)
+        glfw.window_hint(GLFW_CONSTANTS.GLFW_CONTEXT_VERSION_MINOR, 4)
+        glfw.window_hint(
+            GLFW_CONSTANTS.GLFW_OPENGL_PROFILE,
+            GLFW_CONSTANTS.GLFW_OPENGL_CORE_PROFILE)
+        glfw.window_hint(
+            GLFW_CONSTANTS.GLFW_OPENGL_FORWARD_COMPAT, GLFW_CONSTANTS.GLFW_TRUE)
         # for uncapped framerate
         # glfw.window_hint(GLFW_CONSTANTS.GLFW_DOUBLEBUFFER, GL_FALSE)
 

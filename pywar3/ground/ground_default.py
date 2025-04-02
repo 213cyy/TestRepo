@@ -385,6 +385,8 @@ class GroundMesh_Frame:
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.line_attr_buffer)
 
+        glBindVertexArray(self.vao_dummy)
+        
         glUniform1ui(self.line_attr_offset_location, 0)
         glDrawArraysInstanced(GL_LINE_STRIP, 0, self.width_n, self.height_n)
 
