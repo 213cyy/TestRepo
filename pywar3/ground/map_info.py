@@ -3,6 +3,7 @@ from .conf import *
 from struct import unpack, iter_unpack, Struct
 import numpy as np
 import os 
+import itertools
 
 class TileCorner:
     def __init__(self, tilepoint):
@@ -81,19 +82,12 @@ class MapInfo:
         # self.tile_water_inst = []
 
         # ------------- first loop to set cliff_flag ------------------
-        # find and mark all cliff corner
-        for index in range((height-1) * (width-1)):
-            row, col = divmod(index, width-1)
-        # for row in range(height-1):
-        #     for col in range(width-1):
-            corner_bottom_left = cbl = col+row*width
-            corner_bottom_right = cbr = col+row*width+1
-            corner_top_left = ctl = col+row*width+width
-            corner_top_right = ctr = col+row*width+width+1
-            tile_points = [corner_list[corner_bottom_left],
-                           corner_list[corner_bottom_right],
-                           corner_list[corner_top_left],
-                           corner_list[corner_top_right]]
+        for row, col in itertools.product(range(height-1),range(width-1)):
+            cbl = col+row*width
+            tile_points = [corner_list[cbl],
+                           corner_list[cbl+1],
+                           corner_list[cbl+width],
+                           corner_list[cbl+width+1]]
 
             tile_points_layer = [k.layer_level for k in tile_points]
             level_max = max(tile_points_layer)
@@ -109,21 +103,13 @@ class MapInfo:
                         tile_points[k].tileset_type = 4
 
         # ------------- second loop to populate  ------------------
-        for index in range((height-1) * (width-1)):
-            row, col = divmod(index, width-1)
-        # for row in range(height-1):
-        #     for col in range(width-1):
-            corner_bottom_left = cbl = col+row*width
-            corner_bottom_right = cbr = col+row*width+1
-            corner_top_left = ctl = col+row*width+width
-            corner_top_right = ctr = col+row*width+width+1
-            tile_points = [
-                corner_list[corner_bottom_right],
-                corner_list[corner_bottom_left],
-                corner_list[corner_top_right],
-                corner_list[corner_top_left],
-            ]
-
+        for row, col in itertools.product(range(height-1),range(width-1)):
+            cbl = col+row*width # 左下角
+            ctl = cbl+width # 左上角
+            tile_points = [corner_list[cbl],
+                           corner_list[cbl+1],
+                           corner_list[ctl],
+                           corner_list[ctl+1]]
             # ------------- cliff ------------------
             ramp_count = sum([k.ramp_flag for k in tile_points])
             ramp_cliff_count = sum([k.cliff_flag for k in tile_points])
@@ -140,7 +126,7 @@ class MapInfo:
                 self.tile_cliff_inst += [cbl]
             else:
                 # ------------- ground ------------------
-                self.tile_ground_array += [cbl, cbr, ctl, cbr, ctr, ctl]
+                self.tile_ground_array += [cbl, cbl+1, ctl, cbl+1, ctl+1, ctl]
                 ground_var = corner_list[cbl].tile_var
                 # print(ground_var)
                 ground_types = [k.tileset_type for k in tile_points]
@@ -160,7 +146,7 @@ class MapInfo:
             # ------------- water ------------------
             tile_points_water = [k.water_flag for k in tile_points]
             if any(tile_points_water):
-                self.tile_water_array += [cbl, cbr, ctl, cbr, ctr, ctl]
+                self.tile_water_array += [cbl, cbl+1, ctl, cbl+1, ctl+1, ctl]
                 # self.tile_water_inst += [cbl]
 
         # ------------- third loop to populate corner_point_array ------------------
@@ -168,12 +154,10 @@ class MapInfo:
         # contains universal property (position + color) info for all corner points
         self.corner_point_array = []
         self.ground_z_list = []
-        for index in range(height * width):
-            row, col = divmod(index, width)
+        for index,(row, col) in enumerate(itertools.product(range(height),range(width))):
             pos_x = col * 128 + self.center_offset_x
             pos_y = row * 128 + self.center_offset_y
             corner_list[index].init_position(pos_x, pos_y)
-
             pos_ground_z = corner_list[index].pos_ground_z
             pos_water_z = corner_list[index].pos_water_z
             water_color = corner_list[index].water_color
