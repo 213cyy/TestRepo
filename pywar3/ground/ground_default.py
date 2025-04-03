@@ -73,7 +73,7 @@ class GroundRenderEngine:
         glBindBuffer(GL_UNIFORM_BUFFER, self.ubo_MVP)
         glBufferData(GL_UNIFORM_BUFFER, MVP.nbytes, MVP, GL_STATIC_DRAW)
         # glBindBuffer(GL_UNIFORM_BUFFER, 0)
-        self.mesh_args['water']['phase'] = window_state['frametime']
+        self.mesh_args['water']['phase'] += window_state['frametime']
         # print(self.water_phase)
 
     def get_position_height(self, postion):
