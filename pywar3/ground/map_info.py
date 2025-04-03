@@ -2,6 +2,7 @@
 from .conf import * 
 from struct import unpack, iter_unpack, Struct
 import numpy as np
+import os 
 
 class TileCorner:
     def __init__(self, tilepoint):
@@ -67,7 +68,7 @@ class TileCorner:
 
 class MapInfo:
     def __init__(self, filename=None) -> None:
-        self.load_file_data()
+        self.init_from_file()
 
         corner_list = self.corner_list
         width = self.width
@@ -181,50 +182,69 @@ class MapInfo:
                                         pos_ground_z, pos_water_z] + water_color
             self.ground_z_list += [pos_ground_z]
         pass
+    # 生成 结构解析 字符串
+    def gen_stu(self, stu):
+        lstu = ''.join(stu.values()) if isinstance(stu, dict) \
+                else stu if  isinstance(stu, str) \
+                else ''.join(stu) if isinstance(stu,list) \
+                else None
+        if lstu is None:
+            raise ValueError('stu must be a dict,string,or list')
+        return lstu
+    
+    def load_fdata(self, fr, stu,  styp='bytes', rlen=None, rtyp = 'return', endian='='):
+        '''
+        说明:从文件中读取数据
+        参数:
+            fr: 文件对象
+            stu: 结构解析字符串，可以是 字典, 字符串, 或列表
+            styp: 结构解析类型, bytes: 单次结构解析, num_list: 数据中带元素个数的列表, list:  数据中不带元素个数的列表
+            rtyp: 结果处理方式, return: 返回数据, init:初始化数据，init和字典组合，可以将数据直接转换为该对象的变量
+            endian: 结构解析的字节序
+        '''
+        cinit = True if isinstance(stu, dict) else False
+        
+        if not cinit and rtyp == 'init':
+            raise ValueError('stru must be a dict when rtyp is init')
+        fr_unpack = lambda x: (lambda x:x.unpack(fr.read(x.size)))(
+            Struct(endian+x)
+        )
+        fr_iter_unpack = lambda x,rlen=None: (lambda x,rlen:x.iter_unpack(fr.read(rlen)))(
+            Struct(endian+x),rlen
+        )
+        if styp == 'bytes':
+            data = fr_unpack(self.gen_stu(stu))
+        elif styp == 'num_list':
+            length = fr_unpack(stu.pop('num_'))
+            data = fr_unpack(self.gen_stu(stu)*length[0])
+        elif styp == 'list':
+            data = fr_iter_unpack(self.gen_stu(stu),None)
+        else:
+            raise ValueError('styp must be bytes,num_list,list')
+        
+        if rtyp == 'return':
+            return data
+        elif rtyp == 'init':
+            if styp in ['num_list','list'] and len(stu)==1:
+                ds = []
+                for v in data:
+                    ds.append(v.decode() if isinstance(v, bytes) else v)
+                setattr(self, list(stu.keys())[0], ds)
+                return 
+            
+            for key, value in zip(stu.keys(), data):
+                value = value.decode() if isinstance(value, bytes) else value
+                setattr(self, key, value)
+        else:
+            raise ValueError('rtyp must be return or init')
 
-    def load_file_data(self, w3eFilepath=None):
-
+    def init_from_file(self, w3eFilepath=None):
         w3eFilepath = WAR3_ENVIRONMENT_FILE
-        with open(w3eFilepath, 'rb') as file:
-            data = file.read()
-        # print(len(data))
-
         # https://867380699.github.io/blog/2019/05/09/W3X_Files_Format#war3mapw3e
-        head0 = Struct("=4sIcI")
-
-        for key, value in zip(
-            ("file_id", "version", "tileset_id", "custom_tilesets"),
-                head0.unpack(data[0:head0.size])):
-            setattr(self, key, value)
-        # magic_number = W3E!
-        # format_version = 11
-        # main_tileset = L (Lordaeron Summer)
-
-        p = head0.size
-        ground_tileset_ids_count = unpack("I", data[p:p+4])[0]
-
-        p = p+4
-        temp_count = 4*ground_tileset_ids_count
-        temp_bin = data[p:p+temp_count].decode()
-        self.ground_tileset_ids = [temp_bin[ind:ind+4]
-                                   for ind in range(0, temp_count, 4)]
-
-        p = p+4*ground_tileset_ids_count
-        cliff_tileset_ids_count = unpack("I", data[p:p+4])[0]
-        p = p+4
-        self.cliff_tileset_ids = iter_unpack(
-            "4s", data[p:p+4*cliff_tileset_ids_count])
-        p = p+4*cliff_tileset_ids_count
-
-        head_end = Struct("IIff")
-        for key, value in zip(
-            ("width", "height", "center_offset_x", "center_offset_y"),
-                head_end.unpack(data[p:p+head_end.size])):
-            setattr(self, key, value)
-
-        p = p+head_end.size
-        # print(len(data[p:]))
-        # corner_list_bin = data[p:]
-        corner_list_raw = list(iter_unpack("HHBBB", data[p:]))
-        # return list(iter_unpack("HHBBB", data[p:]))
-        self.corner_list = [TileCorner(k) for k in corner_list_raw]
+        print('init_from_file:', w3eFilepath, os.path.getsize(w3eFilepath))
+        with open(w3eFilepath, 'rb') as fr:
+            self.load_fdata(fr, {"file_id":'4s', "version":'I', "tileset_id":'c', "custom_tilesets":'I'},rtyp='init')
+            self.load_fdata(fr, {'num_':'I','ground_tileset_ids':'4s'}, styp='num_list', rtyp='init')
+            self.load_fdata(fr, {'num_':'I','cliff_tileset_ids':'4s'}, styp='num_list', rtyp='init')
+            self.load_fdata(fr, {"width":'I', "height":'I', "center_offset_x":'f', "center_offset_y":'f'},rtyp='init')
+            self.corner_list = [TileCorner(k) for k in self.load_fdata(fr, 'HHBBB', styp='list', rtyp='return')]
