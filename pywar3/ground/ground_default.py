@@ -7,9 +7,10 @@ import os
 # else:
 #     from ground.conf import *
 
-from .conf import * 
+from .conf import *
 from .map_info import MapInfo
-from .ground_mesh import GroundMesh_Cliff,GroundMesh_Frame,GroundMesh_Terrain,GroundMesh_Water
+from .ground_mesh import GroundMesh_Cliff, GroundMesh_Frame, GroundMesh_Terrain, GroundMesh_Water
+
 
 class GroundRenderEngine:
     # default_MVP = np.array([[1.0,  0.0,  0.0,  0.0],
@@ -33,16 +34,20 @@ class GroundRenderEngine:
             mapw3e.ground_z_list).reshape((mapw3e.width, -1))
 
         # self.water_phase = 0
-        self.mesh_args = {'water':{'phase':0}}
+        self.mesh_args = {'water': {'phase': 0}}
         self.mesh_group = {}
-        for nm,cls in {'wireframe':GroundMesh_Frame, 
-                   'terrain':GroundMesh_Terrain, 
-                   'water':GroundMesh_Water, 
-                   'cliff':GroundMesh_Cliff}.items():
+        mesh_names_dict = {
+            'wireframe': GroundMesh_Frame,
+            'terrain': GroundMesh_Terrain,
+            'cliff': GroundMesh_Cliff,
+            'water': GroundMesh_Water,
+        }
+        for nm, cls in mesh_names_dict.items():
             self.mesh_group[nm] = cls(mapw3e,
-                                       os.path.join(GROUND_SHADER_FOLDER,f'{nm}.vert'),
-                                       os.path.join(GROUND_SHADER_FOLDER,f'{nm}.frag'))
-            
+                                      os.path.join(
+                                          GROUND_SHADER_FOLDER, f'{nm}.vert'),
+                                      os.path.join(GROUND_SHADER_FOLDER, f'{nm}.frag'))
+
         self.MVP = self.default_MVP
         self.ubo_MVP = glGenBuffers(1)
         glBindBuffer(GL_UNIFORM_BUFFER, self.ubo_MVP)
@@ -61,11 +66,11 @@ class GroundRenderEngine:
         glBindBufferBase(GL_UNIFORM_BUFFER, 1, self.ubo_corner_pos)
 
     def render(self, view=None, projection=None):
-        for nm,mesh in self.mesh_group.items():
+        for nm, mesh in self.mesh_group.items():
             mesh.render(**self.mesh_args.get(nm, {}))
 
     def destroy(self) -> None:
-        for nm,mesh in self.mesh_group.items():
+        for nm, mesh in self.mesh_group.items():
             mesh.destroy()
 
     def update_with_input(self, keys_state, window_state):
@@ -77,12 +82,12 @@ class GroundRenderEngine:
         # print(self.water_phase)
 
     def get_position_height(self, postion):
-        
+
         pos_x, pos_y = postion[0], postion[1]
         quot_width, dx = divmod(pos_x - self.map_bottom_left_x, 128)
         quot_height, dy = divmod(pos_y - self.map_bottom_left_y, 128)
-        ind_width = max(0, min(int(quot_width),self.map_z_list.shape[1]-2))
-        ind_height = max(0, min(int(quot_height),self.map_z_list.shape[0]-2))
+        ind_width = max(0, min(int(quot_width), self.map_z_list.shape[1]-2))
+        ind_height = max(0, min(int(quot_height), self.map_z_list.shape[0]-2))
 
         b1 = self.map_z_list[ind_height][ind_width]
         b2 = self.map_z_list[ind_height][ind_width+1]
@@ -92,6 +97,7 @@ class GroundRenderEngine:
         top_z = (1-dx/128)*t1 + dx/128*t2
         pos_z = (1-dy/128)*bottom_z + dy/128*top_z
         return pos_z
+
 
 if __name__ == "__main__":
     print(10 * "-", "debug", 10 * "-")

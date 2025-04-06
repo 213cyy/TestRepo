@@ -106,10 +106,12 @@ class MapInfo:
         for row, col in itertools.product(range(height-1),range(width-1)):
             cbl = col+row*width # 左下角
             ctl = cbl+width # 左上角
-            tile_points = [corner_list[cbl],
-                           corner_list[cbl+1],
-                           corner_list[ctl],
-                           corner_list[ctl+1]]
+            tile_points = [
+                corner_list[cbl+1],
+                corner_list[cbl],
+                corner_list[ctl+1],
+                corner_list[ctl],
+            ]
             # ------------- cliff ------------------
             ramp_count = sum([k.ramp_flag for k in tile_points])
             ramp_cliff_count = sum([k.cliff_flag for k in tile_points])
