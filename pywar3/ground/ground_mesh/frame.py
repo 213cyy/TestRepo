@@ -2,7 +2,11 @@ from OpenGL.GL import *
 from PIL import Image
 import numpy as np
 from .mesh import Mesh
-from ..conf import *
+
+try:
+    from ..conf import *
+except ImportError:
+    from conf import *
 
 class Frame(Mesh):
     def __init__(self, mapw3e, vert, frag) -> None:

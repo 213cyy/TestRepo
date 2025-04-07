@@ -1,9 +1,12 @@
 from OpenGL.GL import *
 from PIL import Image
 import numpy as np
+# try:
 from .mesh import Mesh
-from ..conf import *
-
+try:
+    from ..conf import *
+except ImportError:
+    from conf import *
 class CliffTexture:
 
     # __slots__ = ("texture", "unit", "texture_type")
