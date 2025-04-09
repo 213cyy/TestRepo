@@ -2,7 +2,11 @@ from OpenGL.GL import *
 from PIL import Image
 import numpy as np
 from .mesh import Mesh
-from ..conf import *
+
+try:
+    from ..conf import *
+except ImportError:
+    from conf import *
 
 class WaterTexture:
     # Water textures

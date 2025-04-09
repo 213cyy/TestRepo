@@ -1,9 +1,14 @@
 
-from .conf import * 
 from struct import unpack, iter_unpack, Struct
 import numpy as np
 import os 
 import itertools
+
+
+try:
+    from .conf import * 
+except ImportError:
+    from conf import * 
 
 class TileCorner:
     def __init__(self, tilepoint):

@@ -6,10 +6,15 @@ import os
 #     from conf import *
 # else:
 #     from ground.conf import *
+try:
+    from .conf import * 
+    from .map_info import MapInfo
+    from .ground_mesh import GroundMesh_Cliff,GroundMesh_Frame,GroundMesh_Terrain,GroundMesh_Water
+except ImportError:
+    from conf import * 
+    from map_info import MapInfo
+    from ground_mesh import GroundMesh_Cliff,GroundMesh_Frame,GroundMesh_Terrain,GroundMesh_Water
 
-from .conf import *
-from .map_info import MapInfo
-from .ground_mesh import GroundMesh_Cliff, GroundMesh_Frame, GroundMesh_Terrain, GroundMesh_Water
 
 
 class GroundRenderEngine:
